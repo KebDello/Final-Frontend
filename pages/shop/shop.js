@@ -9,6 +9,7 @@ function getAllProducts() {
             allProducts = response.data; // Сохраняем все продукты
             showProducts(allProducts); // Показываем все продукты
             showCategories(allProducts); // Показываем категории
+            addRateFilter(allProducts)
         })
         .catch((error) => {
             console.log(error.message); // обработка ошибок
@@ -35,7 +36,7 @@ function showProducts(products){
                         </div>
                         <div>
                             ${showRate(product.rate)}
-                            <span class="text-secondary">(${product.reviewsCount || Math.round(Math.random() * 100)})</span>
+                            <span class="text-secondary">(${product.rewiewsCount || Math.round(Math.random() * 100)})</span>
                         </div>
                         <div>
                             <button class="btn btn-dark w-100 my-2 add-to-cart" data-product="${JSON.stringify(product)}">add to cart</button>
@@ -96,5 +97,79 @@ function addToCart(product){
         console.error("Ошибка: Токен авторизации не найден")
     }
 }
+
+function showCategories(products){
+    const categories = document.querySelector(".categories");
+    categories.innerHTML = "";
+    let categoriesList = products.map((product) => {
+        return product.category;
+    });
+
+    const uniqueCategories = new Set(categoriesList);
+
+    uniqueCategories.forEach((category)=>{
+        const div = document.createElement("div");
+        div.innerText = category;
+        div.classList.add("my-1");
+        categories.append(div);
+
+        div.addEventListener("click", () =>{
+            const filteredProducts = products.filter((product) => {
+                return product.category === category;
+            });
+            showProducts(filteredProducts)
+        })
+    })
+}
+function addRateFilter(allProducts){
+    const rateList = document.querySelector(".rate");
+rateList.forEach(rate => {
+    rate.addEventListener("click", () =>{
+        const filteredProducts = allProducts.filter((product) =>{
+            return product.rate == rate.dataset.rate;
+        });
+        showProducts(filteredProducts)
+    })
+})
+}
+document.querySelector(".sortSelect").addEventListener("change", function(event){
+    const order = event.target.value === "1" ? 'asc' : 'desc';
+    const sortedProducts = sortProductsByPrice(allProducts,order);
+    showProducts(sortedProducts)
+});
+
+function sortedProductsByPrice(products, order = 'asc'){
+    return product.sort((a,b) =>{
+        if(order === 'asc'){
+            return a.price - b.price;
+        } else if(order === 'desc'){
+            return b.price - a.price;
+        }else{
+            console.error('Invalid order parametr');
+            return 0;
+        }
+    })
+}
+
+document.querySelector("allProductsBtn").addEventListener("click", () =>{
+    getAllProducts();
+})
+
+document.querySelector(".searchInput").addEventListener("input", (e) => {
+    let searchWord = e.target.value.toLowerCase();
+    let filteredProducts;
+
+    filteredProducts = allProducts.filter((product) =>{
+        const brandAndModel = (product.brand + " " + product.model).toLowerCase();
+        return brandAndModel.includes(searchWord);
+    });
+
+    if(searchWord === ""){
+        filteredProducts = allProducts;
+    }
+
+    showProducts(filteredProducts);
+})
+
 
 getAllProducts()
